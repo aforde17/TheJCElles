@@ -3,13 +3,15 @@ from pathlib import Path
 import re
 import nltk
 from nltk.stem import WordNetLemmatizer
+import gensim 
+from gensim import corpora 
 nltk.download("stopwords")
 
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
 home_path = Path(__file__).parent.parent
 data_path = home_path.joinpath("data/")
-df = pd.read_csv(data_path.joinpath("tweets_subset.csv"))
+df = pd.read_csv(data_path.joinpath("covid19_tweets.csv"))
 
 #Filter tweets by "mask"
 df = df.loc[df.text.str.contains('mask',case=False)]
@@ -28,6 +30,7 @@ def pre_process(text, stopwords):
 
 document = df[["text"]]
 
+#print("doc_head: ", document.head())
 processed_data = []
 for row in document:
     text = document["text"].values
@@ -35,6 +38,13 @@ for row in document:
     processed_data.append(tokens)
 
 print(processed_data)
+
+input_dict = corpora.Dictionary(processed_data)
+input_corpus = [input_dict.doc2bow(token, allow_update=True) for token in processed_data]
+lda_model = gensim.models.ldamodel.LdaModel(input_corpus, num_topics=4, id2word=input_dict, passes=20)
+topics = lda_model.print_topics(num_words=10)
+for t in topics:
+    print(t)
 
 
 
