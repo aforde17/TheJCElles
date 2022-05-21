@@ -20,13 +20,16 @@ def rehydrate(client, tweet_ids, outfile_name):
     '''
     # The tweet_lookup function allows
     lookup = client.tweet_lookup(tweet_ids = tweet_ids)
-    for page in lookup:
+    main_results = []
+
+    for _, page in enumerate(lookup):
         # The Twitter API v2 returns the Tweet information and the user, media etc.  separately
         # so we use expansions.flatten to get all the information in a single JSON
-        result = expansions.flatten(page)
+        result = expansions.ensure_flattened(page['data'])
+        main_results = main_results + result
     
     with open(outfile_name, 'w') as fout:
-        json.dump(result , fout)
+        json.dump(main_results, fout)
 
 
 
@@ -37,7 +40,6 @@ def retrieve_tweets_by_date(target_date, tweet_ids_path, rehydrated_path):
     #Download the dataset (compressed in a GZ format)
     #!wget dataset_URL -O clean-dataset.tsv.gz
     outfile_tsv = str(tweet_ids_path) +'/clean-' + target_date + '.tsv.gz'
-    print(outfile_tsv)
     wget.download(dataset_URL, out = outfile_tsv)
 
     # gets list of Tweet IDs to lookup; filter to English tweets only
@@ -47,7 +49,7 @@ def retrieve_tweets_by_date(target_date, tweet_ids_path, rehydrated_path):
     df['tweet_id'] = df['tweet_id'].astype(str)
 
     outfile_name = str(rehydrated_path) + '/rehydrated-' + target_date + '.json'
-    tweet_ids = list(df['tweet_id'])[0:5] #subset to 5 for the time being
+    tweet_ids = list(df['tweet_id'])[0:10000] #subset to 5 for the time being
 
     return rehydrate(client, tweet_ids, outfile_name)
 
