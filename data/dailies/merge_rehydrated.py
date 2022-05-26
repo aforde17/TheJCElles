@@ -1,11 +1,21 @@
 import pandas as pd
 import os
+from zipfile import ZipFile
 from pathlib import Path
-from datetime import date
+
 
 
 home_path = Path(os.getcwd())
 tweets_path = home_path.joinpath("rehydrated")
+
+#Assumes all the jsons are in a zipped folder called full_rehydrated_tweets within 
+# the dailies folder
+zipped = home_path.joinpath("full_rehydrated_tweets.zip")
+
+# Extracting the jsons
+with ZipFile(zipped, 'r') as zip_ref:
+    zip_ref.extractall(tweets_path)
+
 
 # looping over all files in the directory
 files = Path(tweets_path).glob('*')
