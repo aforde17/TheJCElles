@@ -2,7 +2,22 @@ import pandas as pd
 import os
 from zipfile import ZipFile
 from pathlib import Path
+from datetime import datetime
+from langdetect import detect
 
+def clean_non_english(df):
+    '''
+    Cleans removes all non english tweets from an input data frame
+    '''
+    cleaned = []
+    for _, row in df.iterrows():
+        try:
+            lang = detect(row['text'])
+            if lang == 'en':
+                cleaned.append(row)
+        except:
+            cleaned.append(row)
+    return pd.DataFrame(cleaned)
 
 
 home_path = Path(os.getcwd())
@@ -25,6 +40,8 @@ for file in files:
     df = pd.read_json(file)
     # Pulling out date rather than datetime
     df['date'] = pd.to_datetime(df['created_at']).dt.date
+    if df['date'][0] == datetime.strptime('2020-04-03', '%Y-%m-%d').date():
+        df = clean_non_english(df)
     df = df[['date', 'text']]
     list_of_dfs.append(df)
 
@@ -32,3 +49,6 @@ for file in files:
 full_df = pd.concat(list_of_dfs)
 
 full_df.to_csv("full_tweets.csv")
+
+
+
