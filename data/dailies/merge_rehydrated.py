@@ -1,8 +1,10 @@
 import pandas as pd
+import os
 from pathlib import Path
 from datetime import date
 
-home_path = Path()
+
+home_path = Path(os.getcwd())
 tweets_path = home_path.joinpath("rehydrated")
 
 # looping over all files in the directory
