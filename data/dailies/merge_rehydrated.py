@@ -46,17 +46,18 @@ for file in files:
 # Concatnating the list of subsetted dfs
 int_df = pd.concat(list_of_dfs)
 
-mask_keywords =  ["mask", "wearamask", "masking", "N95", "face cover", "face covering", 
-                "face covered", "mouth cover", "mouth covering", "mouth covered", "nose cover",
-                "nose covering", "nose covered", "cover your face", "coveryourface"]
-
+mask_keywords =  ["mask", "wearamask", "masking", "masked", "unmask", "unmasked", "unmasking",
+    "anti-mask", "maskon", "maskoff", "N95", "face cover", "face covering", "face covered", "mouth cover", 
+    "mouth covering", "mouth covered", "nose cover", "nose covering", "nose covered", "cloth covering", 
+    "cover your face", "coveryourface", "facemask", "face diaper", "n95", "n-95", "kn95", "kn-95", "respirator"]
+ 
 mask_key = "|".join(mask_keywords)
 
 full_df = int_df[int_df['text'].str.contains(mask_key)==True]
 
 full_df = clean_non_english(full_df)
 
-full_df.to_csv("full_tweets.csv")
+full_df.to_csv("full_tweets.csv", index = False)
 
 
 
