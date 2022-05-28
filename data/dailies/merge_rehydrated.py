@@ -40,13 +40,21 @@ for file in files:
     df = pd.read_json(file)
     # Pulling out date rather than datetime
     df['date'] = pd.to_datetime(df['created_at']).dt.date
-    if df['date'][0] == datetime.strptime('2020-04-03', '%Y-%m-%d').date():
-        df = clean_non_english(df)
     df = df[['date', 'text']]
     list_of_dfs.append(df)
 
 # Concatnating the list of subsetted dfs
-full_df = pd.concat(list_of_dfs)
+int_df = pd.concat(list_of_dfs)
+
+mask_keywords =  ["mask", "wearamask", "masking", "N95", "face cover", "face covering", 
+                "face covered", "mouth cover", "mouth covering", "mouth covered", "nose cover",
+                "nose covering", "nose covered", "cover your face", "coveryourface"]
+
+mask_key = "|".join(mask_keywords)
+
+full_df = int_df[int_df['text'].str.contains(mask_key)==True]
+
+full_df = clean_non_english(full_df)
 
 full_df.to_csv("full_tweets.csv")
 
