@@ -22,22 +22,24 @@ def clean_non_english(df):
     return pd.DataFrame(cleaned)
 
 
-home_path = Path(os.getcwd())
-tweets_path = home_path.joinpath("rehydrated")
+home_path = Path(os.getcwd()).parent
+data_path = home_path.joinpath("data/dailies")
+output_path = data_path.joinpath("rehydrated")
+
 
 # Assumes all the jsons are in a zipped folder called full_rehydrated_tweets within 
 # the dailies folder
 
 # COMMENT OUT THESE IF THE JSONS ARE ALREADY IN YOUR DIRECTORY
-zipped = home_path.joinpath("full_rehydrated_tweets.zip")
+zipped = data_path.joinpath("full_rehydrated_tweets.zip")
 
 # Extracting the jsons
 with ZipFile(zipped, 'r') as zip_ref:
-    zip_ref.extractall(tweets_path)
+    zip_ref.extractall(data_path)
 
 
 # looping over all files in the directory
-files = Path(tweets_path).glob('*')
+files = Path(output_path).glob('*')
 
 list_of_dfs = []
 for file in files:
@@ -58,4 +60,4 @@ full_df = int_df[int_df['text'].str.contains(mask_key, case = False)==True]
 # Cleaning all non-english tweets
 full_df = clean_non_english(full_df)
 
-full_df.to_csv("full_tweets.csv", index = False)
+full_df.to_csv(data_path.joinpath("full_tweets.csv"), index = False)
