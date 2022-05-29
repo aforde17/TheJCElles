@@ -25,8 +25,10 @@ def clean_non_english(df):
 home_path = Path(os.getcwd())
 tweets_path = home_path.joinpath("rehydrated")
 
-#Assumes all the jsons are in a zipped folder called full_rehydrated_tweets within 
+# Assumes all the jsons are in a zipped folder called full_rehydrated_tweets within 
 # the dailies folder
+
+# COMMENT OUT THESE IF THE JSONS ARE ALREADY IN YOUR DIRECTORY
 zipped = home_path.joinpath("full_rehydrated_tweets.zip")
 
 # Extracting the jsons
@@ -57,6 +59,3 @@ full_df = int_df[int_df['text'].str.contains(mask_key, case = False)==True]
 full_df = clean_non_english(full_df)
 
 full_df.to_csv("full_tweets.csv", index = False)
-
-
-
