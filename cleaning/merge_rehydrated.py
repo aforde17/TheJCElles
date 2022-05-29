@@ -46,7 +46,7 @@ for file in files:
     df = pd.read_json(file)
     # Pulling out date rather than datetime
     df['date'] = pd.to_datetime(df['created_at']).dt.date
-    df = df[['date', 'text']]
+    df = df[['date', 'id', 'text']]
     list_of_dfs.append(df)
 
 # Concatnating the list of subsetted dfs
