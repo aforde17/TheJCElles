@@ -72,18 +72,6 @@ for tweet_text in filtered_tweets:
 print("Done selecting tweet text")
 
 
-# # Testing VADER algorithm
-# test_tweets = filtered_tweets[:10]
-
-# analyzer = SentimentIntensityAnalyzer()
-
-
-# polarity = []
-# for sentence in filtered_tweets:
-#     vs = analyzer.polarity_scores(sentence)
-#     polarity.append(vs)
-
-
 tf_idf_vectorizor = TfidfVectorizer(stop_words = 'english')
 sklearn_pca = PCA(n_components=2)
 scaler = StandardScaler()
