@@ -87,7 +87,7 @@ print("Done making features")
 
 model = KMeans(n_clusters=3, init='k-means++', max_iter=100, n_init=1)
 
-Y_sklearn = sklearn_pca.fit_transform(features.T)
+Y_sklearn = sklearn_pca.fit_transform(features)
 print("Done with Y_sklearn")
 fitted = model.fit(Y_sklearn)
 print("Done with fitting")
