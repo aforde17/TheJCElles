@@ -4,7 +4,7 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import nltk
 import string
 from pathlib import Path
-from sklearn.cluster import KMeans 
+from sklearn.cluster import KMeans, MiniBatchKMeans
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import PCA
@@ -16,6 +16,7 @@ from nltk.stem import WordNetLemmatizer
 import gensim 
 from gensim import corpora, models 
 import matplotlib.pyplot as plt
+import time
 
 nltk.download("stopwords")
 nltk.download('wordnet')
@@ -42,6 +43,7 @@ def pre_process(text, stopwords):
 
 home_path = Path(__file__).parent.parent
 data_path = home_path.joinpath("data/dailies/")
+fig_path = home_path.joinpath("plots/")
 
 
 # tweets = pd.DataFrame(pd.read_json(data_path.joinpath("rehydrated-2022-01-13.json")))
@@ -80,15 +82,13 @@ scaler = StandardScaler()
 features = tf_idf_vectorizor.fit_transform(token).toarray()
 print("Done making features")
 
-features_scaled = scale(features.T)
-print("Done scaling")
-features_std = scaler.fit_transform(features_scaled)
-print("Done transforming")
+# was using scaler.fit_transform(scale(features.T)) as input for Y_sklearn
 
-Y_sklearn = sklearn_pca.fit_transform(features_std)
-print("Done with Y_sklearn")
 
 model = KMeans(n_clusters=3, init='k-means++', max_iter=100, n_init=1)
+
+Y_sklearn = sklearn_pca.fit_transform(features.T)
+print("Done with Y_sklearn")
 fitted = model.fit(Y_sklearn)
 print("Done with fitting")
 predict = model.predict(Y_sklearn)
@@ -97,10 +97,12 @@ print("Done fitting and predicting")
 print(model.labels_)
 fig, ax = plt.subplots(figsize=(8, 8))
 ax.scatter(Y_sklearn[:, 0], Y_sklearn[:, 1],c=predict ,s=50, cmap='viridis') # Plotting scatter plot 
-ax.legend()
+ax.legend(predict)
 centers2 = fitted.cluster_centers_ # It will give best possible coordinates of cluster center after fitting k-means
 ax.scatter(centers2[:, 0], centers2[:, 1],c='black', s=300, alpha=0.6)
-plt.show()
+# fig.savefig(fig_path.joinpath("scatter.png"))
+# plt.show()
+plt.savefig(fig_path.joinpath("cluster-scaled.png"))
 
 
 
