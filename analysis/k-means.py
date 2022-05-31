@@ -85,13 +85,13 @@ print("Done scaling")
 features_std = scaler.fit_transform(features_scaled)
 print("Done transforming")
 
-Y_sklearn = sklearn_pca.fit_transform(features)
+Y_sklearn = sklearn_pca.fit_transform(features_std)
 print("Done with Y_sklearn")
 
 model = KMeans(n_clusters=3, init='k-means++', max_iter=100, n_init=1)
-fitted = model.fit(features)
+fitted = model.fit(Y_sklearn)
 print("Done with fitting")
-predict = model.predict(features)
+predict = model.predict(Y_sklearn)
 print("Done fitting and predicting")
 
 print(model.labels_)
