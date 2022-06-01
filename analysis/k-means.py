@@ -1,22 +1,16 @@
 from cProfile import label
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
-import nltk
-import string
 from pathlib import Path
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import normalize, StandardScaler, scale
-from sklearn.metrics import pairwise_distances
-import re
-import nltk
-from nltk.stem import WordNetLemmatizer
-import gensim 
-from gensim import corpora, models 
+from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import time
+import nltk
+import re
+from nltk import WordNetLemmatizer
 
 nltk.download("stopwords")
 nltk.download('wordnet')
@@ -38,21 +32,22 @@ def pre_process(text, stopwords):
     return text_without_sw
 
 
-# polarity score on x
-# domain on y?
 
 home_path = Path(__file__).parent.parent
 data_path = home_path.joinpath("data/dailies/")
 fig_path = home_path.joinpath("plots/")
+cleaning = home_path.joinpath("cleaning/")
 
 
 # tweets = pd.DataFrame(pd.read_json(data_path.joinpath("rehydrated-2022-01-13.json")))
 
-# df = pd.read_pickle(data_path.joinpath("full_tweets_clean.pkl"))
-df = pd.read_csv(data_path.joinpath("full_tweets.csv"))
-df = pd.DataFrame(df)
+df = pd.read_pickle(data_path.joinpath("full_tweets_clean.pkl"))
 
+df = pd.DataFrame(df)
+df['text'] = df['text'].str.join(" ")
 df = df[["date", "text"]]
+
+
 
 keyword = ["mask", "wearamask", "masking", "N95", "face cover", "face covering", "face covered", "mouth cover", "mouth covering",
 "mouth covered", "nose cover", "nose covering", "nose covered", "cover your face", "coveryourface"]
@@ -68,41 +63,60 @@ for tweet in df.itertuples():
 print("Done filtering")
 
 token = []
-for tweet_text in filtered_tweets:
-    tokens = pre_process(tweet_text, stopwords)
+for tweet_text in df[['text']]:
+    tokens = pre_process(stopwords, tweet_text)
+    print(tokens)
     token.append(tokens)
 print("Done selecting tweet text")
 
-
+print("Making tf-idf vector")
 tf_idf_vectorizor = TfidfVectorizer(stop_words = 'english')
-sklearn_pca = PCA(n_components=2)
-scaler = StandardScaler()
+print("Initializing dimensionality reduction")
+truncate = TruncatedSVD()
 
-
-features = tf_idf_vectorizor.fit_transform(token).toarray()
+print("Making features")
+features = tf_idf_vectorizor.fit_transform(token)
 print("Done making features")
 
-# was using scaler.fit_transform(scale(features.T)) as input for Y_sklearn
 
+# # was using scaler.fit_transform(scale(features.T)) as input for Y_sklearn
 
+print("Initializing kmeans")
 model = KMeans(n_clusters=3, init='k-means++', max_iter=100, n_init=1)
 
-Y_sklearn = sklearn_pca.fit_transform(features)
-print("Done with Y_sklearn")
+# Y_sklearn = sklearn_pca.fit_transform(features)
+
+print("Reducing dimensions for tf-idf vector")
+Y_sklearn = truncate.fit_transform(features)
+
+
+# word_positions = {v: k for k, v in tf_idf_vectorizor.vocabulary_.items()}
+# print(word_positions)
+
+print("Fitting reduced tf-idf")
 fitted = model.fit(Y_sklearn)
-print("Done with fitting")
+print("Predicting clusters from tf-idf")
 predict = model.predict(Y_sklearn)
-print("Done fitting and predicting")
+
+# testing 
+# # dist_words = sorted(v for k, v in word_positions.items())
+# # print(dist_words)
+# for cluster in set(predict):
+#     tfidf = features[predict == cluster]
+#     tfidf[tfidf > 0] = 1
+
+#     df = pd.DataFrame(tfidf)
+#     print(df)
 
 print(model.labels_)
 fig, ax = plt.subplots(figsize=(8, 8))
 ax.scatter(Y_sklearn[:, 0], Y_sklearn[:, 1],c=predict ,s=50, cmap='viridis') # Plotting scatter plot 
 ax.legend(predict)
+
 centers2 = fitted.cluster_centers_ # It will give best possible coordinates of cluster center after fitting k-means
+
 ax.scatter(centers2[:, 0], centers2[:, 1],c='black', s=300, alpha=0.6)
-# fig.savefig(fig_path.joinpath("scatter.png"))
-# plt.show()
-plt.savefig(fig_path.joinpath("cluster-scaled.png"))
+plt.savefig(fig_path.joinpath("cluster-unscaled-transposed.png"))
 
 
 
