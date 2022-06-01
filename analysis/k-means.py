@@ -8,29 +8,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import nltk
-import re
-from nltk import WordNetLemmatizer
-
-nltk.download("stopwords")
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-
-stopwords = set(nltk.corpus.stopwords.words("english"))
-
-stemmer = WordNetLemmatizer()
-
-def pre_process(text, stopwords):
-    text = str(text)
-    text = re.sub(r"http\S+", "", text)
-    text = re.sub(r"[^a-zA-Z]",' ',text)
-    text = text.lower()
-    text = text.split()
-    text = [stemmer.lemmatize(word) for word in text if len(word) > 3]
-    text_without_sw = [word for word in text if word not in stopwords]
-    text_without_sw = " ".join(text_without_sw)
-    return text_without_sw
-
 
 
 home_path = Path(__file__).parent.parent
@@ -48,7 +25,6 @@ df['text'] = df['text'].str.join(" ")
 df = df[["date", "text"]]
 
 
-
 keyword = ["mask", "wearamask", "masking", "N95", "face cover", "face covering", "face covered", "mouth cover", "mouth covering",
 "mouth covered", "nose cover", "nose covering", "nose covered", "cover your face", "coveryourface"]
 
@@ -62,12 +38,6 @@ for tweet in df.itertuples():
         break
 print("Done filtering")
 
-token = []
-for tweet_text in df[['text']]:
-    tokens = pre_process(stopwords, tweet_text)
-    print(tokens)
-    token.append(tokens)
-print("Done selecting tweet text")
 
 print("Making tf-idf vector")
 tf_idf_vectorizor = TfidfVectorizer(stop_words = 'english')
@@ -75,17 +45,15 @@ print("Initializing dimensionality reduction")
 truncate = TruncatedSVD()
 
 print("Making features")
-features = tf_idf_vectorizor.fit_transform(token)
+features = tf_idf_vectorizor.fit_transform(filtered_tweets)
 print("Done making features")
 
 
-# # was using scaler.fit_transform(scale(features.T)) as input for Y_sklearn
 
 print("Initializing kmeans")
 model = KMeans(n_clusters=3, init='k-means++', max_iter=100, n_init=1)
 
-# Y_sklearn = sklearn_pca.fit_transform(features)
-
+# # was using scaler.fit_transform(scale(features.T)) as input for Y_sklearn
 print("Reducing dimensions for tf-idf vector")
 Y_sklearn = truncate.fit_transform(features)
 
@@ -116,7 +84,7 @@ ax.legend(predict)
 centers2 = fitted.cluster_centers_ # It will give best possible coordinates of cluster center after fitting k-means
 
 ax.scatter(centers2[:, 0], centers2[:, 1],c='black', s=300, alpha=0.6)
-plt.savefig(fig_path.joinpath("cluster-unscaled-transposed.png"))
+plt.savefig(fig_path.joinpath("cluster-unscaled.png"))
 
 
 
